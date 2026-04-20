@@ -25,13 +25,14 @@ import { Loader2 } from "lucide-react";
 
 interface EventModalProps {
   event?: Event;
+  defaultDate?: string;
   onClose: () => void;
 }
 
 const CATEGORIES = ["work", "personal", "health", "social", "learning", "other"];
 const PRIORITIES = ["low", "medium", "high"];
 
-export function EventModal({ event, onClose }: EventModalProps) {
+export function EventModal({ event, defaultDate, onClose }: EventModalProps) {
   const queryClient = useQueryClient();
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
@@ -40,7 +41,7 @@ export function EventModal({ event, onClose }: EventModalProps) {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    date: format(new Date(), "yyyy-MM-dd"),
+    date: defaultDate || format(new Date(), "yyyy-MM-dd"),
     startTime: "09:00",
     endTime: "10:00",
     category: "work",

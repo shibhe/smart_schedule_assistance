@@ -69,6 +69,8 @@ const clerkAppearance = {
     logoImage: "w-10 h-10",
     logoBox: "flex items-center justify-center",
     footerAction: "bg-white/5 border-t border-white/10",
+    socialButtonsRoot: { display: "none" },
+    dividerRow: { display: "none" },
   },
 };
 

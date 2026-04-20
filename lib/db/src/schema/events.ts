@@ -13,6 +13,7 @@ export const eventsTable = pgTable("events", {
   priority: text("priority").notNull().default("medium"),
   completed: boolean("completed").notNull().default(false),
   color: text("color"),
+  location: text("location"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
