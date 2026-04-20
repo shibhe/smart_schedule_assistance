@@ -5,10 +5,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useClerk, useUser } from "@clerk/react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Command Center", icon: LayoutDashboard },
-  { href: "/calendar", label: "Schedule", icon: CalendarIcon },
-  { href: "/stats", label: "Telemetry", icon: BarChart3 },
-  { href: "/suggestions", label: "AI Directives", icon: Lightbulb },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/calendar", label: "Calendar", icon: CalendarIcon },
+  { href: "/stats", label: "Analytics", icon: BarChart3 },
+  { href: "/suggestions", label: "AI Suggestions", icon: Lightbulb },
 ];
 
 const basePath = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -21,7 +21,7 @@ function UserFooter() {
     signOut({ redirectUrl: `${basePath}/sign-in` });
   };
 
-  const displayName = user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "Operator";
+  const displayName = user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "User";
   const email = user?.primaryEmailAddress?.emailAddress;
 
   return (
@@ -46,7 +46,7 @@ function UserFooter() {
         className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-9 transition-colors group"
       >
         <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
-        <span className="font-medium tracking-wide">DISCONNECT</span>
+        <span className="font-medium tracking-wide">Sign Out</span>
       </Button>
     </div>
   );
@@ -92,12 +92,12 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="font-bold text-base tracking-tight text-white">SmartSchedule</h1>
-            <p className="text-[9px] text-primary font-mono uppercase tracking-[0.2em] mt-0.5">Terminal Active</p>
+            <p className="text-[9px] text-primary font-mono uppercase tracking-[0.2em] mt-0.5">AI Scheduling</p>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="py-4">
-            <p className="px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2 font-mono">Operations</p>
+            <p className="px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2 font-mono">Navigation</p>
             <NavLinks />
           </div>
         </div>
@@ -118,11 +118,11 @@ export function Sidebar() {
             </div>
             <div>
               <h1 className="font-bold text-base tracking-tight text-white">SmartSchedule</h1>
-              <p className="text-[9px] text-primary font-mono uppercase tracking-[0.2em] mt-0.5">Terminal Active</p>
+              <p className="text-[9px] text-primary font-mono uppercase tracking-[0.2em] mt-0.5">AI Scheduling</p>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-            <p className="px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2 font-mono">Operations</p>
+            <p className="px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2 font-mono">Navigation</p>
             <NavLinks />
           </div>
           <UserFooter />
