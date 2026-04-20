@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 
 interface EventModalProps {
   event?: Event;
@@ -47,7 +47,7 @@ export function EventModal({ event, defaultDate, onClose }: EventModalProps) {
     category: "work",
     priority: "medium",
     location: "",
-    color: "#6366f1",
+    color: "#8b5cf6", // Primary violet
   });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function EventModal({ event, defaultDate, onClose }: EventModalProps) {
         category: event.category || "work",
         priority: event.priority || "medium",
         location: event.location || "",
-        color: event.color || "#6366f1",
+        color: event.color || "#8b5cf6",
       });
     }
   }, [event]);
@@ -104,130 +104,154 @@ export function EventModal({ event, defaultDate, onClose }: EventModalProps) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[540px]">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Event" : "New Event"}</DialogTitle>
+      <DialogContent className="sm:max-w-[600px] bg-background/95 backdrop-blur-xl border-white/10 shadow-2xl p-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
+        
+        <DialogHeader className="p-6 border-b border-white/5 relative z-10 bg-black/20">
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold tracking-wide">
+            {isEditing ? (
+              "Modify Directive"
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 text-primary" />
+                New Directive
+              </>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 relative z-10">
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Identifier *</Label>
             <Input
               id="title"
-              placeholder="Event title"
+              placeholder="Event designation"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               required
               autoFocus
+              className="bg-black/40 border-white/10 focus-visible:ring-primary focus-visible:border-primary text-base py-6"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Parameters</Label>
             <Textarea
               id="description"
-              placeholder="Optional description"
+              placeholder="Optional parameters and details"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              rows={2}
-              className="resize-none"
+              rows={3}
+              className="resize-none bg-black/40 border-white/10 focus-visible:ring-primary focus-visible:border-primary"
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2 col-span-3 sm:col-span-1">
-              <Label htmlFor="date">Date *</Label>
+              <Label htmlFor="date" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Date *</Label>
               <Input
                 id="date"
                 type="date"
                 value={form.date}
                 onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
                 required
+                className="bg-black/40 border-white/10 focus-visible:ring-primary focus-visible:border-primary font-mono text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="startTime">Start</Label>
+              <Label htmlFor="startTime" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Initiate</Label>
               <Input
                 id="startTime"
                 type="time"
                 value={form.startTime}
                 onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
                 required
+                className="bg-black/40 border-white/10 focus-visible:ring-primary focus-visible:border-primary font-mono text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endTime">End</Label>
+              <Label htmlFor="endTime" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Terminate</Label>
               <Input
                 id="endTime"
                 type="time"
                 value={form.endTime}
                 onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))}
+                className="bg-black/40 border-white/10 focus-visible:ring-primary focus-visible:border-primary font-mono text-sm"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Classification</Label>
               <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-black/40 border-white/10 focus:ring-primary">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card/95 backdrop-blur-xl border-white/10">
                   {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
+                    <SelectItem key={c} value={c} className="uppercase tracking-wider text-xs font-bold focus:bg-white/10">{c}</SelectItem>
                   ))}
-                </SelectContent>
+             </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Priority</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Priority</Label>
               <Select value={form.priority} onValueChange={(v) => setForm((f) => ({ ...f, priority: v }))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-black/40 border-white/10 focus:ring-primary">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card/95 backdrop-blur-xl border-white/10">
                   {PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                    <SelectItem key={p} value={p} className="uppercase tracking-wider text-xs font-bold focus:bg-white/10">{p}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Coordinates</Label>
               <Input
                 id="location"
                 placeholder="Optional location"
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                className="bg-black/40 border-white/10 focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="color"
-                  type="color"
-                  value={form.color}
-                  onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
-                  className="w-12 h-9 p-1 cursor-pointer"
-                />
+              <Label htmlFor="color" className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Color Tag</Label>
+              <div className="flex gap-3 items-center">
+                <div className="relative overflow-hidden rounded-md border border-white/20 w-10 h-10 shrink-0 shadow-sm" style={{ boxShadow: `0 0 10px ${form.color}40` }}>
+                  <Input
+                    id="color"
+                    type="color"
+                    value={form.color}
+                    onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                    className="absolute inset-[-10px] w-[200%] h-[200%] cursor-pointer p-0 border-0"
+                  />
+                </div>
                 <div
-                  className="flex-1 h-9 rounded-md border"
-                  style={{ backgroundColor: form.color + "20", borderColor: form.color + "40" }}
-                />
+                  className="flex-1 h-10 rounded-md border backdrop-blur-sm px-3 flex items-center"
+                  style={{ backgroundColor: `${form.color}20`, borderColor: `${form.color}40` }}
+                >
+                  <span className="font-mono text-xs tracking-wider" style={{ color: form.color }}>{form.color.toUpperCase()}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isPending || !form.title}>
+          <DialogFooter className="pt-4 border-t border-white/5 gap-2 sm:gap-0 mt-6">
+            <Button type="button" variant="ghost" onClick={onClose} className="hover:bg-white/5 hover:text-white">Abort</Button>
+            <Button 
+              type="submit" 
+              disabled={isPending || !form.title}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wide shadow-[0_0_15px_rgba(139,92,246,0.4)]"
+            >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {isEditing ? "Save Changes" : "Create Event"}
+              {isEditing ? "Commit Changes" : "Initialize Event"}
             </Button>
           </DialogFooter>
         </form>

@@ -35,38 +35,38 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
   },
   variables: {
-    colorPrimary: "hsl(239, 84%, 67%)",
-    colorBackground: "hsl(224, 71%, 4%)",
-    colorInputBackground: "hsl(222, 47%, 11%)",
-    colorText: "hsl(213, 31%, 91%)",
+    colorPrimary: "hsl(255, 85%, 65%)",
+    colorBackground: "hsl(232, 40%, 6%)",
+    colorInputBackground: "hsl(232, 30%, 15%)",
+    colorText: "hsl(210, 40%, 98%)",
     colorTextSecondary: "hsl(215, 20%, 65%)",
-    colorInputText: "hsl(213, 31%, 91%)",
+    colorInputText: "hsl(210, 40%, 98%)",
     colorNeutral: "hsl(215, 20%, 65%)",
     borderRadius: "0.75rem",
-    fontFamily: "Inter, sans-serif",
-    fontFamilyButtons: "Inter, sans-serif",
+    fontFamily: "'Outfit', 'Inter', sans-serif",
+    fontFamilyButtons: "'Outfit', 'Inter', sans-serif",
     fontSize: "15px",
   },
   elements: {
     rootBox: "w-full",
-    cardBox: "shadow-2xl rounded-2xl w-full overflow-hidden border border-white/10",
+    cardBox: "shadow-2xl rounded-2xl w-full overflow-hidden border border-white/5 bg-background/80 backdrop-blur-xl",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: { color: "hsl(213, 31%, 91%)", fontWeight: "700" },
+    headerTitle: { color: "hsl(210, 40%, 98%)", fontWeight: "700", fontFamily: "'Outfit', sans-serif" },
     headerSubtitle: { color: "hsl(215, 20%, 65%)" },
-    socialButtonsBlockButtonText: { color: "hsl(213, 31%, 91%)" },
+    socialButtonsBlockButtonText: { color: "hsl(210, 40%, 98%)" },
     formFieldLabel: { color: "hsl(215, 20%, 65%)" },
-    footerActionLink: { color: "hsl(239, 84%, 80%)" },
+    footerActionLink: { color: "hsl(255, 85%, 65%)" },
     footerActionText: { color: "hsl(215, 20%, 65%)" },
     dividerText: { color: "hsl(215, 20%, 55%)" },
-    identityPreviewEditButton: { color: "hsl(239, 84%, 80%)" },
+    identityPreviewEditButton: { color: "hsl(255, 85%, 65%)" },
     formFieldSuccessText: { color: "hsl(142, 71%, 45%)" },
     alertText: { color: "hsl(0, 84%, 70%)" },
-    formButtonPrimary: "bg-indigo-600 hover:bg-indigo-500 text-white font-semibold",
-    formFieldInput: "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-indigo-500",
-    socialButtonsBlockButton: "border-white/10 hover:bg-white/5",
+    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all",
+    formFieldInput: "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all",
+    socialButtonsBlockButton: "border-white/10 hover:bg-white/5 transition-all",
     dividerLine: "bg-white/10",
-    logoImage: "w-10 h-10",
+    logoImage: "w-10 h-10 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]",
     logoBox: "flex items-center justify-center",
     footerAction: "bg-white/5 border-t border-white/10",
     socialButtonsRoot: { display: "none" },
@@ -74,18 +74,32 @@ const clerkAppearance = {
   },
 };
 
-function SignInPage() {
-  // To update login providers, app branding, or OAuth settings use the Auth
-  // pane in the workspace toolbar. More information can be found in the Replit docs.
+function AuthBackground() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <>
+      <div className="fixed inset-0 bg-background z-[-2]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-secondary/10 via-transparent to-background" />
+      </div>
+      <div className="fixed inset-0 noise-overlay z-[-1]" />
+    </>
+  );
+}
+
+function SignInPage() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center px-4 relative overflow-hidden">
+      <AuthBackground />
+      <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <img src={`${basePath}/logo.svg`} alt="SmartSchedule" className="w-10 h-10" />
-            <h1 className="text-2xl font-bold text-foreground">SmartSchedule</h1>
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full" />
+              <img src={`${basePath}/logo.svg`} alt="SmartSchedule" className="w-12 h-12 relative z-10" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground font-sans tracking-tight">SmartSchedule</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Your AI-powered scheduling assistant</p>
+          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">AI Command Center</p>
         </div>
         <SignIn
           routing="path"
@@ -98,17 +112,19 @@ function SignInPage() {
 }
 
 function SignUpPage() {
-  // To update login providers, app branding, or OAuth settings use the Auth
-  // pane in the workspace toolbar. More information can be found in the Replit docs.
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-[100dvh] items-center justify-center px-4 relative overflow-hidden">
+      <AuthBackground />
+      <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <img src={`${basePath}/logo.svg`} alt="SmartSchedule" className="w-10 h-10" />
-            <h1 className="text-2xl font-bold text-foreground">SmartSchedule</h1>
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full" />
+              <img src={`${basePath}/logo.svg`} alt="SmartSchedule" className="w-12 h-12 relative z-10" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground font-sans tracking-tight">SmartSchedule</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Create your free account</p>
+          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">Initialize Sequence</p>
         </div>
         <SignUp
           routing="path"
@@ -188,14 +204,14 @@ function ClerkProviderWithRoutes() {
       localization={{
         signIn: {
           start: {
-            title: "Welcome back",
-            subtitle: "Sign in to your SmartSchedule account",
+            title: "Access terminal",
+            subtitle: "Authenticate to continue",
           },
         },
         signUp: {
           start: {
-            title: "Create your account",
-            subtitle: "Start organizing your life with AI",
+            title: "Establish connection",
+            subtitle: "Initialize your AI assistant",
           },
         },
       }}
