@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, chatMessagesTable, eventsTable } from "@workspace/db";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, gte } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { broadcastToUser } from "../websocket/wsServer";
@@ -49,22 +49,23 @@ router.post("/chat/message", requireAuth, async (req: any, res): Promise<void> =
     day: "numeric",
   });
 
-  const recentEvents = await db
+  const now = new Date();
+  const upcomingEvents = await db
     .select()
     .from(eventsTable)
-    .where(eq(eventsTable.userId, userId))
-    .orderBy(desc(eventsTable.startTime))
-    .limit(10);
+    .where(and(eq(eventsTable.userId, userId), eq(eventsTable.completed, false), gte(eventsTable.startTime, now)))
+    .orderBy(eventsTable.startTime)
+    .limit(20);
 
   const eventsContext =
-    recentEvents.length > 0
-      ? `Current events in the schedule:\n${recentEvents
+    upcomingEvents.length > 0
+      ? `Upcoming events (future, not yet completed):\n${upcomingEvents
           .map(
             (e) =>
-              `- ID:${e.id} "${e.title}" on ${e.date} at ${new Date(e.startTime).toLocaleTimeString()} (${e.category}, ${e.priority} priority, ${e.completed ? "completed" : "pending"})`,
+              `- ID:${e.id} "${e.title}" on ${e.date} at ${new Date(e.startTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}${e.endTime ? `–${new Date(e.endTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}` : ""} (${e.category}, ${e.priority} priority)`,
           )
           .join("\n")}`
-      : "No events currently scheduled.";
+      : "No upcoming events scheduled.";
 
   const systemPrompt = `You are an intelligent scheduling assistant for the Smart Scheduler app. Today is ${todayFormatted} (${today}).
 
