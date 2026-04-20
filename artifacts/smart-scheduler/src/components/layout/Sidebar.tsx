@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Calendar as CalendarIcon, BarChart3, Lightbulb, Menu, CalendarCheck, Sparkles } from "lucide-react";
+import { LayoutDashboard, Calendar as CalendarIcon, BarChart3, Lightbulb, Menu, Sparkles, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useClerk, useUser } from "@clerk/react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -9,6 +10,47 @@ const NAV_ITEMS = [
   { href: "/stats", label: "Insights", icon: BarChart3 },
   { href: "/suggestions", label: "AI Suggestions", icon: Lightbulb },
 ];
+
+const basePath = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+function UserFooter() {
+  const { signOut } = useClerk();
+  const { user } = useUser();
+
+  const handleSignOut = () => {
+    signOut({ redirectUrl: `${basePath}/sign-in` });
+  };
+
+  const displayName = user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "Account";
+  const email = user?.primaryEmailAddress?.emailAddress;
+
+  return (
+    <div className="p-4 border-t">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+          {user?.imageUrl ? (
+            <img src={user.imageUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <User className="w-4 h-4 text-primary" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{displayName}</p>
+          {email && <p className="text-xs text-muted-foreground truncate">{email}</p>}
+        </div>
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleSignOut}
+        className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground h-8"
+      >
+        <LogOut className="w-3.5 h-3.5" />
+        Sign out
+      </Button>
+    </div>
+  );
+}
 
 export function Sidebar() {
   const [location] = useLocation();
@@ -22,8 +64,8 @@ export function Sidebar() {
             <Button
               variant={isActive ? "secondary" : "ghost"}
               className={`w-full justify-start gap-3 h-10 transition-all ${
-                isActive 
-                  ? "bg-primary/10 text-primary hover:bg-primary/15 font-medium" 
+                isActive
+                  ? "bg-primary/10 text-primary hover:bg-primary/15 font-medium"
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >
@@ -55,13 +97,7 @@ export function Sidebar() {
             <NavLinks />
           </div>
         </div>
-        <div className="p-4 border-t mt-auto">
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 rounded-xl p-4 text-center">
-             <CalendarCheck className="w-6 h-6 text-primary mx-auto mb-2" />
-             <p className="text-xs font-medium text-foreground mb-1">Stay organized</p>
-             <p className="text-[10px] text-muted-foreground">Your AI assistant is ready to help plan your day.</p>
-          </div>
-        </div>
+        <UserFooter />
       </aside>
 
       {/* Mobile Sidebar */}
@@ -84,6 +120,7 @@ export function Sidebar() {
           <div className="flex-1 overflow-y-auto py-2">
             <NavLinks />
           </div>
+          <UserFooter />
         </SheetContent>
       </Sheet>
     </>

@@ -16,6 +16,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 - **AI**: OpenAI (via Replit AI Integrations) - gpt-5.2 for chatbot + suggestions
+- **Auth**: Clerk (email/password + Google OAuth)
 
 ## Key Commands
 
