@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, isNull } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { db, eventsTable } from "@workspace/db";
 import { broadcastToUser } from "../websocket/wsServer";
@@ -14,6 +14,19 @@ import {
 
 const router: IRouter = Router();
 
+// Track which users have already had their unclaimed events migrated this
+// server session — avoids re-running the claim query on every request.
+const claimedUsers = new Set<string>();
+
+async function claimUnownedEvents(userId: string): Promise<void> {
+  if (claimedUsers.has(userId)) return;
+  claimedUsers.add(userId);
+  await db
+    .update(eventsTable)
+    .set({ userId })
+    .where(isNull(eventsTable.userId));
+}
+
 function requireAuth(req: any, res: any, next: any) {
   const auth = getAuth(req);
   const userId = auth?.userId;
@@ -22,7 +35,7 @@ function requireAuth(req: any, res: any, next: any) {
     return;
   }
   req.userId = userId;
-  next();
+  claimUnownedEvents(userId).then(() => next()).catch(() => next());
 }
 
 router.get("/events/today", requireAuth, async (req: any, res): Promise<void> => {
