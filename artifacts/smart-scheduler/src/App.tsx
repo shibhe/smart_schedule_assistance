@@ -95,7 +95,7 @@ function SignInPage() {
             </div>
             <h1 className="text-3xl font-bold text-foreground font-sans tracking-tight">SmartSchedule</h1>
           </div>
-          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">AI Command Center</p>
+          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">AI Scheduling</p>
         </div>
         <SignIn
           routing="path"
@@ -120,7 +120,7 @@ function SignUpPage() {
             </div>
             <h1 className="text-3xl font-bold text-foreground font-sans tracking-tight">SmartSchedule</h1>
           </div>
-          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">Initialize Sequence</p>
+          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">Create your account</p>
         </div>
         <SignUp
           routing="path"
@@ -219,14 +219,14 @@ function ClerkProviderWithRoutes() {
       localization={{
         signIn: {
           start: {
-            title: "Access terminal",
-            subtitle: "Authenticate to continue",
+            title: "Welcome back",
+            subtitle: "Sign in to your account",
           },
         },
         signUp: {
           start: {
-            title: "Establish connection",
-            subtitle: "Initialize your AI assistant",
+            title: "Create an account",
+            subtitle: "Start organizing your schedule",
           },
         },
       }}

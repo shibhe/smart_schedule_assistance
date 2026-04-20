@@ -1,6 +1,7 @@
 import { createServer } from "http";
 import app from "./app";
 import { attachWebSocketServer } from "./websocket/wsServer";
+import { startScheduler } from "./scheduler";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
@@ -27,4 +28,5 @@ server.listen(port, (err?: Error) => {
   }
 
   logger.info({ port }, "Server listening");
+  startScheduler();
 });

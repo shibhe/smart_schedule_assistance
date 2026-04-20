@@ -34,7 +34,7 @@ export function useWebSocket() {
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data as string);
-          if (["event_created", "event_updated", "event_deleted"].includes(msg.type)) {
+          if (["event_created", "event_updated", "event_deleted", "events_auto_closed"].includes(msg.type)) {
             invalidateEvents();
           }
         } catch {
