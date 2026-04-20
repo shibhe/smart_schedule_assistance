@@ -51,7 +51,7 @@ export default function Stats() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50" />
             <CardContent className="p-6 relative z-10">
               <div className="flex items-center justify-between space-y-0 pb-4 border-b border-white/5 mb-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono">Gross Volume</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono">Total Events</p>
                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
                   <Calendar className="h-4 w-4 text-white" />
                 </div>
@@ -67,7 +67,7 @@ export default function Stats() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
             <CardContent className="p-6 relative z-10">
               <div className="flex items-center justify-between space-y-0 pb-4 border-b border-white/5 mb-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary font-mono">Current Cycle</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-primary font-mono">This Week</p>
                 <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Clock className="h-4 w-4 text-primary" />
                 </div>
@@ -87,7 +87,7 @@ export default function Stats() {
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-50" />
             <CardContent className="p-6 relative z-10">
               <div className="flex items-center justify-between space-y-0 pb-4 border-b border-white/5 mb-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-secondary font-mono">Macro Phase</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-secondary font-mono">This Month</p>
                 <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
                   <Calendar className="h-4 w-4 text-secondary" />
                 </div>

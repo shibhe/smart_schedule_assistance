@@ -8,9 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useUser } from "@clerk/react";
 
 export default function Home() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { user } = useUser();
+  const firstName = user?.firstName || user?.username || "";
 
   const { data: todayData, isLoading: isLoadingToday } = useGetTodayEvents({
     query: { queryKey: getGetTodayEventsQueryKey() }
@@ -35,7 +38,7 @@ export default function Home() {
               System Online
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white font-sans">
-              Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}.
+              Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}{firstName ? `, ${firstName}` : ""}.
             </h1>
             <p className="text-muted-foreground font-mono text-sm tracking-widest uppercase">
               {format(new Date(), "EEEE, MMMM do, yyyy")} // Local Time
@@ -59,7 +62,7 @@ export default function Home() {
             <CardHeader className="pb-2 relative z-10">
               <CardTitle className="text-xs font-bold font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2">
                 <TerminalSquare className="w-4 h-4 text-primary" />
-                Priority Target
+                Next Up
               </CardTitle>
             </CardHeader>
             <CardContent className="relative z-10 pt-2">
@@ -94,7 +97,7 @@ export default function Home() {
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 relative z-10">
               <CardTitle className="text-xs font-bold font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2">
                 <Activity className="w-4 h-4 text-secondary" />
-                Execution Rate
+                Today's Progress
               </CardTitle>
               <Link href="/calendar" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-white flex items-center gap-1 transition-colors">
                 View Log <ArrowRight className="w-3 h-3" />
@@ -110,7 +113,7 @@ export default function Home() {
                   <div className="flex items-end gap-3">
                     <span className="text-4xl font-bold text-white leading-none">{todayData?.completedCount || 0}</span>
                     <span className="text-muted-foreground font-mono text-sm mb-1">/ {todayData?.totalCount || 0}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-1.5 ml-1">Verified</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-1.5 ml-1">Done</span>
                   </div>
                   
                   <div className="h-3 bg-black/50 border border-white/10 rounded-full overflow-hidden relative">

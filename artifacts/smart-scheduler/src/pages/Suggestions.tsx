@@ -29,7 +29,7 @@ export default function Suggestions() {
           title: suggestion.title,
           description: suggestion.description,
           date: suggestion.suggestedDate,
-          startTime: suggestion.suggestedTime,
+          startTime: `${suggestion.suggestedDate}T${suggestion.suggestedTime}:00`,
           category: suggestion.category,
           priority: suggestion.priority as any
         }

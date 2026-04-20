@@ -59,16 +59,26 @@ export default function Calendar() {
               <Server className="w-3 h-3" /> Grid synchronized
             </p>
           </div>
-          <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 shadow-inner">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="hover:bg-white/10 text-white rounded-lg h-9 w-9">
-              <ChevronLeft className="w-5 h-5" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setCurrentDate(new Date()); setSelectedDate(new Date()); }}
+              className="text-xs font-bold uppercase tracking-widest text-primary border border-primary/30 hover:bg-primary/10 hover:text-primary h-9 px-4 rounded-xl"
+            >
+              Today
             </Button>
-            <span className="font-bold text-sm uppercase tracking-widest w-40 text-center text-white font-mono">
-              {format(currentDate, "MMMM yyyy")}
-            </span>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="hover:bg-white/10 text-white rounded-lg h-9 w-9">
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 shadow-inner">
+              <Button variant="ghost" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="hover:bg-white/10 text-white rounded-lg h-9 w-9">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <span className="font-bold text-sm uppercase tracking-widest w-40 text-center text-white font-mono">
+                {format(currentDate, "MMMM yyyy")}
+              </span>
+              <Button variant="ghost" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="hover:bg-white/10 text-white rounded-lg h-9 w-9">
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </header>
 

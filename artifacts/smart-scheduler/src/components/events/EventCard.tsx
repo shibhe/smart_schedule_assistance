@@ -26,6 +26,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { EventModal } from "./EventModal";
 
 interface EventCardProps {
@@ -52,6 +62,7 @@ const priorityConfig = {
 
 export function EventCard({ event, onClick, className = "", variant = "default" }: EventCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const queryClient = useQueryClient();
   const updateEvent = useUpdateEvent();
   const deleteEvent = useDeleteEvent();
@@ -73,7 +84,10 @@ export function EventCard({ event, onClick, className = "", variant = "default" 
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Delete "${event.title}"?`)) return;
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
     deleteEvent.mutate({ id: event.id }, { onSuccess: invalidateAll });
   };
 
@@ -110,6 +124,22 @@ export function EventCard({ event, onClick, className = "", variant = "default" 
           </div>
         </motion.div>
         {showEditModal && <EventModal event={event} onClose={() => setShowEditModal(false)} />}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent className="bg-card/95 backdrop-blur-xl border-white/10 shadow-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white font-bold tracking-wide">Delete this event?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                <span className="font-semibold text-white/80">"{event.title}"</span> will be permanently removed from your schedule.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </>
     );
   }
@@ -213,6 +243,22 @@ export function EventCard({ event, onClick, className = "", variant = "default" 
         </Card>
       </motion.div>
       {showEditModal && <EventModal event={event} onClose={() => setShowEditModal(false)} />}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-card/95 backdrop-blur-xl border-white/10 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white font-bold tracking-wide">Delete this event?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              <span className="font-semibold text-white/80">"{event.title}"</span> will be permanently removed from your schedule. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
