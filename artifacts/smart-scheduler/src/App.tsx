@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import Suggestions from "@/pages/Suggestions";
 import NotFound from "@/pages/not-found";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useToast } from "@/hooks/use-toast";
 
 const queryClient = new QueryClient();
 
@@ -168,11 +169,29 @@ function PushNotificationBanner() {
   );
 }
 
+function ReminderNotifier() {
+  const { toast } = useToast();
+  const handler = useCallback((e: Event) => {
+    const { event } = (e as CustomEvent).detail;
+    toast({
+      title: "Event in 15 minutes",
+      description: event.title,
+      duration: 8000,
+    });
+  }, [toast]);
+  useEffect(() => {
+    window.addEventListener("event_reminder", handler);
+    return () => window.removeEventListener("event_reminder", handler);
+  }, [handler]);
+  return null;
+}
+
 function AppRoutes() {
   useWebSocket();
   return (
     <AppLayout>
       <PushNotificationBanner />
+      <ReminderNotifier />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/calendar" component={Calendar} />

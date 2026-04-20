@@ -37,6 +37,9 @@ export function useWebSocket() {
           if (["event_created", "event_updated", "event_deleted", "events_auto_closed"].includes(msg.type)) {
             invalidateEvents();
           }
+          if (msg.type === "event_reminder") {
+            window.dispatchEvent(new CustomEvent("event_reminder", { detail: msg }));
+          }
         } catch {
           // ignore
         }
