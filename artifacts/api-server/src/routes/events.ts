@@ -40,7 +40,7 @@ function requireAuth(req: any, res: any, next: any) {
 
 router.get("/events/today", requireAuth, async (req: any, res): Promise<void> => {
   const userId = req.userId as string;
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = (req.query.date as string | undefined) || new Date().toISOString().split("T")[0];
 
   const events = await db
     .select()

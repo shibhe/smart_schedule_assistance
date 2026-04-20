@@ -15,9 +15,11 @@ export default function Home() {
   const { user } = useUser();
   const firstName = user?.firstName || user?.username || "";
 
-  const { data: todayData, isLoading: isLoadingToday } = useGetTodayEvents({
-    query: { queryKey: getGetTodayEventsQueryKey() }
-  });
+  const localDate = format(new Date(), "yyyy-MM-dd");
+  const { data: todayData, isLoading: isLoadingToday } = useGetTodayEvents(
+    { date: localDate },
+    { query: { queryKey: getGetTodayEventsQueryKey({ date: localDate }) } }
+  );
 
   const { data: upcomingEvents, isLoading: isLoadingUpcoming } = useGetUpcomingEvents({
     query: { queryKey: getGetUpcomingEventsQueryKey() }

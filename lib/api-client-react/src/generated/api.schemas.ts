@@ -180,3 +180,10 @@ export type ListEventsParams = {
    */
   end?: string;
 };
+
+export type GetTodayEventsParams = {
+  /**
+   * Local date override in YYYY-MM-DD format (client timezone)
+   */
+  date?: string;
+};

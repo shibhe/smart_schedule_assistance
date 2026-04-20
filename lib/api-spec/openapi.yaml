@@ -169,6 +169,13 @@ paths:
       operationId: getTodayEvents
       tags: [events]
       summary: Get today's events
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: "Local date override in YYYY-MM-DD format (client timezone)"
+          schema:
+            type: string
       responses:
         "200":
           description: Today's events with summary

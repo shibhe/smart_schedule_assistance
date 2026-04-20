@@ -24,6 +24,7 @@ import type {
   ErrorResponse,
   Event,
   EventStats,
+  GetTodayEventsParams,
   HealthStatus,
   ListEventsParams,
   SchedulingSuggestion,
@@ -555,41 +556,57 @@ export const useDeleteEvent = <
 /**
  * @summary Get today's events
  */
-export const getGetTodayEventsUrl = () => {
-  return `/api/events/today`;
+export const getGetTodayEventsUrl = (params?: GetTodayEventsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/events/today?${stringifiedParams}`
+    : `/api/events/today`;
 };
 
 export const getTodayEvents = async (
+  params?: GetTodayEventsParams,
   options?: RequestInit,
 ): Promise<TodayEventsResponse> => {
-  return customFetch<TodayEventsResponse>(getGetTodayEventsUrl(), {
+  return customFetch<TodayEventsResponse>(getGetTodayEventsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetTodayEventsQueryKey = () => {
-  return [`/api/events/today`] as const;
+export const getGetTodayEventsQueryKey = (params?: GetTodayEventsParams) => {
+  return [`/api/events/today`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetTodayEventsQueryOptions = <
   TData = Awaited<ReturnType<typeof getTodayEvents>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getTodayEvents>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params?: GetTodayEventsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTodayEvents>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetTodayEventsQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetTodayEventsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getTodayEvents>>> = ({
     signal,
-  }) => getTodayEvents({ signal, ...requestOptions });
+  }) => getTodayEvents(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getTodayEvents>>,
@@ -610,15 +627,18 @@ export type GetTodayEventsQueryError = ErrorType<unknown>;
 export function useGetTodayEvents<
   TData = Awaited<ReturnType<typeof getTodayEvents>>,
   TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getTodayEvents>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetTodayEventsQueryOptions(options);
+>(
+  params?: GetTodayEventsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTodayEvents>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTodayEventsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

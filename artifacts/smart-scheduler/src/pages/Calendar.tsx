@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useListEvents, getListEventsQueryKey } from "@workspace/api-client-react";
 import type { Event } from "@workspace/api-client-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Loader2, CalendarDays, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/events/EventCard";
@@ -34,7 +34,7 @@ export default function Calendar() {
   );
 
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  const selectedDateEvents = events.filter((e) => isSameDay(new Date(e.date), selectedDate));
+  const selectedDateEvents = events.filter((e) => isSameDay(parseISO(e.date), selectedDate));
 
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
@@ -94,7 +94,7 @@ export default function Calendar() {
           ))}
 
           {monthDays.map((date) => {
-            const dayEvents = events.filter((e) => isSameDay(new Date(e.date), date));
+            const dayEvents = events.filter((e) => isSameDay(parseISO(e.date), date));
             const isSelected = isSameDay(date, selectedDate);
             const isToday = isSameDay(date, new Date());
 

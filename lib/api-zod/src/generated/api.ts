@@ -123,6 +123,13 @@ export const DeleteEventParams = zod.object({
 /**
  * @summary Get today's events
  */
+export const GetTodayEventsQueryParams = zod.object({
+  date: zod.coerce
+    .string()
+    .optional()
+    .describe("Local date override in YYYY-MM-DD format (client timezone)"),
+});
+
 export const GetTodayEventsResponse = zod.object({
   events: zod.array(
     zod.object({
