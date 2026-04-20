@@ -11,6 +11,8 @@ import Calendar from "@/pages/Calendar";
 import Stats from "@/pages/Stats";
 import Suggestions from "@/pages/Suggestions";
 import NotFound from "@/pages/not-found";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const queryClient = new QueryClient();
 
@@ -155,9 +157,28 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+function PushNotificationBanner() {
+  const { permission, isSupported, subscribe } = usePushNotifications();
+  if (!isSupported || permission !== "default") return null;
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-background/90 border border-primary/30 shadow-[0_0_20px_rgba(139,92,246,0.2)] backdrop-blur-md text-sm max-w-sm w-[calc(100%-2rem)] animate-in slide-in-from-top-4 duration-500">
+      <span className="text-lg">🔔</span>
+      <span className="flex-1 text-muted-foreground">Enable push notifications for AI event alerts</span>
+      <button
+        onClick={subscribe}
+        className="shrink-0 px-3 py-1 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary text-xs font-medium transition-colors border border-primary/30"
+      >
+        Enable
+      </button>
+    </div>
+  );
+}
+
 function AppRoutes() {
+  useWebSocket();
   return (
     <AppLayout>
+      <PushNotificationBanner />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/calendar" component={Calendar} />

@@ -3,6 +3,8 @@ import { db, chatMessagesTable, eventsTable } from "@workspace/db";
 import { desc, eq, and } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { broadcastToUser } from "../websocket/wsServer";
+import { sendPushToUser } from "./push";
 
 const router: IRouter = Router();
 
@@ -140,6 +142,12 @@ Rules:
           createdEvent = newEvent;
           eventId = newEvent.id;
 
+          broadcastToUser(userId, { type: "event_created", event: formatEvent(newEvent) });
+          sendPushToUser(userId, {
+            title: "📅 Event Scheduled",
+            body: `"${evt.title}" added to your schedule`,
+          }).catch(() => {});
+
           await db.insert(chatMessagesTable).values({
             userId,
             role: "assistant",
@@ -167,6 +175,8 @@ Rules:
 
           updatedEvent = updEvt;
 
+          if (updEvt) broadcastToUser(userId, { type: "event_updated", event: formatEvent(updEvt) });
+
           await db.insert(chatMessagesTable).values({
             userId,
             role: "assistant",
@@ -178,6 +188,8 @@ Rules:
           await db
             .delete(eventsTable)
             .where(and(eq(eventsTable.id, actionData.eventId), eq(eventsTable.userId, userId)));
+
+          broadcastToUser(userId, { type: "event_deleted", eventId: actionData.eventId });
 
           await db.insert(chatMessagesTable).values({
             userId,

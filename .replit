@@ -33,3 +33,10 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BA7FbLW0wAktOIW76DIpYRF6U3SrdBXDeRLFUwCufKF_6pukX3OS8ik4v_m7kzaC57kB91y0DtlKkj4O7_De4l4"
+VAPID_PRIVATE_KEY = "RBE0aOccGb9R4BE4-MX-rc8TL4sG2c-o1Xc7cBTZB84"
+VAPID_EMAIL = "mailto:admin@smartscheduler.app"

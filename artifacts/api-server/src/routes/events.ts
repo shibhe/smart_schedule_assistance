@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { db, eventsTable } from "@workspace/db";
+import { broadcastToUser } from "../websocket/wsServer";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -152,6 +153,7 @@ router.post("/events", requireAuth, async (req: any, res): Promise<void> => {
     })
     .returning();
 
+  broadcastToUser(userId, { type: "event_created", event: formatEvent(event) });
   res.status(201).json(formatEvent(event));
 });
 
@@ -215,6 +217,7 @@ router.patch("/events/:id", requireAuth, async (req: any, res): Promise<void> =>
     return;
   }
 
+  broadcastToUser(userId, { type: "event_updated", event: formatEvent(event) });
   res.json(formatEvent(event));
 });
 
@@ -236,6 +239,7 @@ router.delete("/events/:id", requireAuth, async (req: any, res): Promise<void> =
     return;
   }
 
+  broadcastToUser(userId, { type: "event_deleted", eventId: params.data.id });
   res.sendStatus(204);
 });
 
