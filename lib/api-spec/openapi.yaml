@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI-Powered Smart Scheduling API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: events
+    description: Event/schedule operations
+  - name: chat
+    description: Chatbot AI operations
+  - name: suggestions
+    description: AI scheduling suggestions
 paths:
   /healthz:
     get:
@@ -24,6 +30,236 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all events
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+          description: Filter by date (YYYY-MM-DD)
+        - in: query
+          name: start
+          schema:
+            type: string
+          description: Filter from date (YYYY-MM-DD)
+        - in: query
+          name: end
+          schema:
+            type: string
+          description: Filter to date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create an event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventBody"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateEvent
+      tags: [events]
+      summary: Update an event
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventBody"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteEvent
+      tags: [events]
+      summary: Delete an event
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /events/today:
+    get:
+      operationId: getTodayEvents
+      tags: [events]
+      summary: Get today's events
+      responses:
+        "200":
+          description: Today's events with summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodayEventsResponse"
+
+  /events/upcoming:
+    get:
+      operationId: getUpcomingEvents
+      tags: [events]
+      summary: Get upcoming events (next 7 days)
+      responses:
+        "200":
+          description: Upcoming events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/stats:
+    get:
+      operationId: getEventStats
+      tags: [events]
+      summary: Get event statistics and overview
+      responses:
+        "200":
+          description: Event statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventStats"
+
+  /chat/message:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message to the AI chatbot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMessageBody"
+      responses:
+        "200":
+          description: AI response with any created/updated events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chat/history:
+    get:
+      operationId: getChatHistory
+      tags: [chat]
+      summary: Get chat message history
+      responses:
+        "200":
+          description: Chat history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+
+  /suggestions:
+    get:
+      operationId: getAiSuggestions
+      tags: [suggestions]
+      summary: Get AI scheduling suggestions
+      responses:
+        "200":
+          description: AI-generated scheduling suggestions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SchedulingSuggestion"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +270,254 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: ["string", "null"]
+          format: date-time
+        date:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        completed:
+          type: boolean
+        color:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - startTime
+        - date
+        - category
+        - priority
+        - completed
+        - createdAt
+        - updatedAt
+
+    CreateEventBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: ["string", "null"]
+          format: date-time
+        date:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        color:
+          type: ["string", "null"]
+      required:
+        - title
+        - startTime
+        - date
+
+    UpdateEventBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: ["string", "null"]
+          format: date-time
+        date:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        completed:
+          type: boolean
+        color:
+          type: ["string", "null"]
+
+    TodayEventsResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+        totalCount:
+          type: integer
+        completedCount:
+          type: integer
+        nextEvent:
+          $ref: "#/components/schemas/Event"
+      required:
+        - events
+        - totalCount
+        - completedCount
+
+    EventStats:
+      type: object
+      properties:
+        totalEvents:
+          type: integer
+        thisWeek:
+          type: integer
+        thisMonth:
+          type: integer
+        completedCount:
+          type: integer
+        categoryBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"
+        priorityBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriorityCount"
+      required:
+        - totalEvents
+        - thisWeek
+        - thisMonth
+        - completedCount
+        - categoryBreakdown
+        - priorityBreakdown
+
+    CategoryCount:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+      required:
+        - category
+        - count
+
+    PriorityCount:
+      type: object
+      properties:
+        priority:
+          type: string
+        count:
+          type: integer
+      required:
+        - priority
+        - count
+
+    ChatMessageBody:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        eventAction:
+          type: ["string", "null"]
+        eventId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+
+    ChatResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        action:
+          type: ["string", "null"]
+        event:
+          $ref: "#/components/schemas/Event"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+        intent:
+          type: ["string", "null"]
+      required:
+        - message
+
+    SchedulingSuggestion:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        suggestedTime:
+          type: string
+        suggestedDate:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        reason:
+          type: string
+        confidence:
+          type: number
+      required:
+        - id
+        - title
+        - description
+        - suggestedTime
+        - suggestedDate
+        - category
+        - priority
+        - reason
+        - confidence

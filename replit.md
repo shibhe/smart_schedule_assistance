@@ -15,6 +15,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **AI**: OpenAI (via Replit AI Integrations) - gpt-5.2 for chatbot + suggestions
 
 ## Key Commands
 
@@ -25,3 +26,29 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Artifacts
+
+### Smart Scheduler (`artifacts/smart-scheduler`)
+- **Type**: React + Vite web app
+- **Preview path**: `/`
+- **Description**: AI-powered smart scheduling PWA with chatbot interface
+
+### API Server (`artifacts/api-server`)
+- **Type**: Express 5 backend
+- **Preview path**: `/api`
+- **Routes**: `/api/events`, `/api/events/today`, `/api/events/upcoming`, `/api/events/stats`, `/api/chat/message`, `/api/chat/history`, `/api/suggestions`
+
+## Database Tables
+
+- `events` — Calendar events with title, description, startTime, endTime, date, category, priority, completed, color
+- `chat_messages` — Chatbot message history with role (user/assistant), content, eventAction, eventId
+
+## Features
+
+- AI chatbot (powered by OpenAI gpt-5.2) for natural language scheduling via CRUD
+- Traditional calendar view with month navigation
+- Stats/analytics dashboard with category and priority breakdowns
+- AI-generated scheduling suggestions
+- Full event CRUD through both chatbot and UI
+- Real-time progress tracking (today's events completion)
