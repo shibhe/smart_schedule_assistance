@@ -9,7 +9,10 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
 
   server.on("upgrade", (req, socket, head) => {
     const url = req.url ?? "";
-    if (url !== "/api/ws" && !url.startsWith("/api/ws?")) {
+    const isWsPath =
+      url === "/api/ws" || url.startsWith("/api/ws?") ||
+      url === "/ws" || url.startsWith("/ws?");
+    if (!isWsPath) {
       socket.destroy();
       return;
     }

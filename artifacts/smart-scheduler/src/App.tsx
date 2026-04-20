@@ -37,13 +37,13 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
   },
   variables: {
-    colorPrimary: "hsl(255, 85%, 65%)",
-    colorBackground: "hsl(232, 40%, 6%)",
-    colorInputBackground: "hsl(232, 30%, 15%)",
-    colorText: "hsl(210, 40%, 98%)",
-    colorTextSecondary: "hsl(215, 20%, 65%)",
-    colorInputText: "hsl(210, 40%, 98%)",
-    colorNeutral: "hsl(215, 20%, 65%)",
+    colorPrimary: "hsl(224, 71%, 4%)",
+    colorBackground: "hsl(0, 0%, 100%)",
+    colorInputBackground: "hsl(220, 14%, 96%)",
+    colorText: "hsl(224, 71%, 4%)",
+    colorTextSecondary: "hsl(220, 9%, 46%)",
+    colorInputText: "hsl(224, 71%, 4%)",
+    colorNeutral: "hsl(220, 9%, 46%)",
     borderRadius: "0.75rem",
     fontFamily: "'Outfit', 'Inter', sans-serif",
     fontFamilyButtons: "'Outfit', 'Inter', sans-serif",
@@ -51,26 +51,26 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full",
-    cardBox: "shadow-2xl rounded-2xl w-full overflow-hidden border border-white/5 bg-background/80 backdrop-blur-xl",
+    cardBox: "shadow-xl rounded-2xl w-full overflow-hidden border border-border bg-card",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: { color: "hsl(210, 40%, 98%)", fontWeight: "700", fontFamily: "'Outfit', sans-serif" },
-    headerSubtitle: { color: "hsl(215, 20%, 65%)" },
-    socialButtonsBlockButtonText: { color: "hsl(210, 40%, 98%)" },
-    formFieldLabel: { color: "hsl(215, 20%, 65%)" },
-    footerActionLink: { color: "hsl(255, 85%, 65%)" },
-    footerActionText: { color: "hsl(215, 20%, 65%)" },
-    dividerText: { color: "hsl(215, 20%, 55%)" },
-    identityPreviewEditButton: { color: "hsl(255, 85%, 65%)" },
-    formFieldSuccessText: { color: "hsl(142, 71%, 45%)" },
-    alertText: { color: "hsl(0, 84%, 70%)" },
-    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all",
-    formFieldInput: "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all",
-    socialButtonsBlockButton: "border-white/10 hover:bg-white/5 transition-all",
-    dividerLine: "bg-white/10",
-    logoImage: "w-10 h-10 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]",
+    headerTitle: { color: "hsl(224, 71%, 4%)", fontWeight: "700", fontFamily: "'Outfit', sans-serif" },
+    headerSubtitle: { color: "hsl(220, 9%, 46%)" },
+    socialButtonsBlockButtonText: { color: "hsl(224, 71%, 4%)" },
+    formFieldLabel: { color: "hsl(220, 9%, 46%)" },
+    footerActionLink: { color: "hsl(224, 71%, 4%)" },
+    footerActionText: { color: "hsl(220, 9%, 46%)" },
+    dividerText: { color: "hsl(220, 9%, 46%)" },
+    identityPreviewEditButton: { color: "hsl(224, 71%, 4%)" },
+    formFieldSuccessText: { color: "hsl(142, 71%, 35%)" },
+    alertText: { color: "hsl(0, 72%, 51%)" },
+    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all",
+    formFieldInput: "bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all",
+    socialButtonsBlockButton: "border-border hover:bg-muted transition-all",
+    dividerLine: "bg-border",
+    logoImage: "w-10 h-10",
     logoBox: "flex items-center justify-center",
-    footerAction: "bg-white/5 border-t border-white/10",
+    footerAction: "bg-muted border-t border-border",
     socialButtonsRoot: { display: "none" },
     dividerRow: { display: "none" },
   },
@@ -78,13 +78,7 @@ const clerkAppearance = {
 
 function AuthBackground() {
   return (
-    <>
-      <div className="fixed inset-0 bg-background z-[-2]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-secondary/10 via-transparent to-background" />
-      </div>
-      <div className="fixed inset-0 noise-overlay z-[-1]" />
-    </>
+    <div className="fixed inset-0 bg-muted z-[-2]" />
   );
 }
 
@@ -161,12 +155,12 @@ function PushNotificationBanner() {
   const { permission, isSupported, subscribe } = usePushNotifications();
   if (!isSupported || permission !== "default") return null;
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-background/90 border border-primary/30 shadow-[0_0_20px_rgba(139,92,246,0.2)] backdrop-blur-md text-sm max-w-sm w-[calc(100%-2rem)] animate-in slide-in-from-top-4 duration-500">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border shadow-lg text-sm max-w-sm w-[calc(100%-2rem)] animate-in slide-in-from-top-4 duration-500">
       <span className="text-lg">🔔</span>
-      <span className="flex-1 text-muted-foreground">Enable push notifications for AI event alerts</span>
+      <span className="flex-1 text-muted-foreground text-xs">Enable push notifications for event reminders</span>
       <button
         onClick={subscribe}
-        className="shrink-0 px-3 py-1 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary text-xs font-medium transition-colors border border-primary/30"
+        className="shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold transition-colors hover:bg-primary/90"
       >
         Enable
       </button>

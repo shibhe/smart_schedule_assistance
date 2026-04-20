@@ -4,7 +4,7 @@ import type { SchedulingSuggestion } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Loader2, Sparkles, Check, Clock, Calendar, Zap } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, Check, Clock, Calendar } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
@@ -41,18 +41,17 @@ export default function Suggestions() {
           queryClient.invalidateQueries({ queryKey: getGetUpcomingEventsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetEventStatsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetAiSuggestionsQueryKey() });
-          
+
           toast({
-            title: "Directive Executed",
-            description: `"${suggestion.title}" added to active timeline.`,
-            className: "bg-background border-primary text-foreground font-sans",
+            title: "Event scheduled",
+            description: `"${suggestion.title}" has been added to your calendar.`,
           });
           setAcceptingId(null);
         },
         onError: () => {
           toast({
-            title: "Execution Failed",
-            description: "System error during scheduling attempt.",
+            title: "Failed to add event",
+            description: "Please try again.",
             variant: "destructive"
           });
           setAcceptingId(null);
@@ -62,112 +61,109 @@ export default function Suggestions() {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 md:p-8 lg:p-10 bg-transparent">
-      <div className="max-w-5xl mx-auto space-y-10">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-primary font-mono text-sm tracking-widest uppercase mb-2">
-              <Zap className="w-4 h-4 text-primary" />
-              Machine Intelligence
+    <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 md:p-8 lg:p-10 bg-background">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-xs font-semibold uppercase tracking-widest">
+              <Sparkles className="w-3.5 h-3.5" />
+              AI-Powered
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white font-sans flex items-center gap-4">
-              AI Directives
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 uppercase tracking-widest text-[10px] font-mono px-2 py-0.5">Beta</Badge>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              Suggestions
+              <Badge variant="outline" className="text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5">Beta</Badge>
             </h1>
-            <p className="text-muted-foreground font-mono text-sm tracking-widest uppercase">
-              Algorithmic schedule optimization
+            <p className="text-sm text-muted-foreground">
+              AI-generated scheduling recommendations based on your patterns
             </p>
           </div>
-          <div className="hidden md:flex w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.2)]">
-            <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+          <div className="hidden md:flex w-14 h-14 bg-muted border border-border rounded-2xl items-center justify-center">
+            <Lightbulb className="w-7 h-7 text-muted-foreground" />
           </div>
         </header>
 
         <AnimatePresence mode="popLayout">
           {isLoading ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 gap-5"
             >
               {[1, 2, 3, 4].map(i => (
-                <Card key={i} className="bg-card/40 border-white/5 overflow-hidden">
-                  <div className="h-1 bg-white/5 w-full overflow-hidden relative">
-                    <div className="absolute inset-0 bg-primary/50 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
-                  </div>
-                  <CardHeader className="h-28 bg-white/5 border-b border-white/5 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+                <Card key={i} className="border-border overflow-hidden">
+                  <CardHeader className="h-24 bg-muted border-b border-border">
+                    <div className="h-4 w-2/3 bg-border rounded animate-pulse" />
+                    <div className="h-3 w-1/2 bg-border rounded animate-pulse mt-2" />
                   </CardHeader>
-                  <CardContent className="p-6 h-36">
-                    <div className="space-y-3">
-                      <div className="h-2 w-full bg-white/5 rounded" />
-                      <div className="h-2 w-3/4 bg-white/5 rounded" />
-                      <div className="h-2 w-1/2 bg-white/5 rounded" />
+                  <CardContent className="p-5 h-32">
+                    <div className="space-y-2">
+                      <div className="h-2.5 w-full bg-muted rounded animate-pulse" />
+                      <div className="h-2.5 w-3/4 bg-muted rounded animate-pulse" />
+                      <div className="h-2.5 w-1/2 bg-muted rounded animate-pulse" />
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </motion.div>
           ) : suggestions.length > 0 ? (
-            <motion.div 
+            <motion.div
               initial="hidden" animate="visible"
               variants={{
                 hidden: { opacity: 0 },
-                visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
               }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 gap-5"
             >
               {suggestions.map(suggestion => {
                 const confPercent = Math.round(suggestion.confidence * 100);
-                const confColor = confPercent > 85 ? 'text-green-400 border-green-500/30' : confPercent > 70 ? 'text-amber-400 border-amber-500/30' : 'text-blue-400 border-blue-500/30';
-                
+                const confColor = confPercent > 85
+                  ? 'text-green-700 border-green-200 bg-green-50'
+                  : confPercent > 70
+                    ? 'text-amber-700 border-amber-200 bg-amber-50'
+                    : 'text-blue-700 border-blue-200 bg-blue-50';
+
                 return (
-                  <motion.div key={suggestion.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
-                    <Card className="h-full flex flex-col overflow-hidden bg-card/60 backdrop-blur-md border-white/10 hover:border-primary/40 hover:shadow-[0_10px_40px_-15px_rgba(139,92,246,0.3)] transition-all duration-300 group">
-                      <CardHeader className="bg-gradient-to-br from-primary/10 via-transparent to-transparent pb-5 border-b border-white/5 relative">
-                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                          <Lightbulb className="w-16 h-16 text-primary" />
+                  <motion.div key={suggestion.id} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
+                    <Card className="h-full flex flex-col overflow-hidden border-border hover:shadow-md transition-shadow">
+                      <CardHeader className="bg-muted/50 pb-4 border-b border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline" className={`uppercase tracking-wider text-[9px] font-bold px-2 py-0.5 border ${confColor}`}>
+                            {confPercent}% confidence
+                          </Badge>
                         </div>
-                        <div className="space-y-2 relative z-10 pr-12">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={`uppercase tracking-widest text-[9px] font-bold px-2 py-0.5 bg-black/40 ${confColor}`}>
-                              Confidence: {confPercent}%
-                            </Badge>
-                          </div>
-                          <CardTitle className="text-xl font-bold tracking-wide text-white leading-tight">{suggestion.title}</CardTitle>
-                        </div>
+                        <CardTitle className="text-base font-bold text-foreground leading-snug">{suggestion.title}</CardTitle>
                       </CardHeader>
-                      <CardContent className="flex-1 pt-5 pb-4 space-y-5">
+                      <CardContent className="flex-1 pt-4 pb-3 space-y-4">
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {suggestion.reason}
                         </p>
-                        
-                        <div className="flex flex-wrap gap-3 mt-auto pt-2">
-                          <div className="flex items-center gap-2 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg shadow-inner">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            <span className="font-mono text-xs font-bold text-white tracking-wider">
+
+                        <div className="flex flex-wrap gap-2">
+                          <div className="flex items-center gap-1.5 bg-muted border border-border px-2.5 py-1.5 rounded-lg">
+                            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="font-mono text-xs font-semibold text-foreground">
                               {format(parseISO(suggestion.suggestedDate), "MMM d, yyyy")}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg shadow-inner">
-                            <Clock className="w-4 h-4 text-secondary" />
-                            <span className="font-mono text-xs font-bold text-white tracking-wider">
+                          <div className="flex items-center gap-1.5 bg-muted border border-border px-2.5 py-1.5 rounded-lg">
+                            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="font-mono text-xs font-semibold text-foreground">
                               {suggestion.suggestedTime}
                             </span>
                           </div>
                         </div>
                       </CardContent>
-                      <CardFooter className="pt-0 pb-5 px-6">
-                        <Button 
-                          className="w-full gap-2 bg-white/5 hover:bg-primary hover:text-primary-foreground border border-white/10 hover:border-primary transition-all font-bold tracking-widest uppercase text-xs h-12 rounded-xl group/btn"
+                      <CardFooter className="pt-0 pb-4 px-5">
+                        <Button
+                          className="w-full gap-2 h-10 rounded-xl font-semibold text-sm"
                           onClick={() => handleAccept(suggestion)}
                           disabled={acceptingId === suggestion.id}
                         >
                           {acceptingId === suggestion.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
                             <>
-                              <Check className="w-4 h-4 text-primary group-hover/btn:text-primary-foreground transition-colors" /> 
-                              Initialize Operation
+                              <Check className="w-4 h-4" />
+                              Add to Calendar
                             </>
                           )}
                         </Button>
@@ -178,14 +174,17 @@ export default function Suggestions() {
               })}
             </motion.div>
           ) : (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-24 bg-card/40 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
-              <div className="w-20 h-20 bg-primary/20 border border-primary/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(139,92,246,0.3)] relative z-10">
-                <Sparkles className="w-10 h-10 text-primary" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20 bg-card rounded-2xl border border-border"
+            >
+              <div className="w-16 h-16 bg-muted border border-border rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <Sparkles className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h2 className="text-2xl font-bold mb-2 text-white tracking-wide relative z-10">System Optimized</h2>
-              <p className="text-muted-foreground font-mono text-sm max-w-md mx-auto uppercase tracking-widest relative z-10">
-                No active directives. Timeline is operating at peak efficiency.
+              <h2 className="text-xl font-bold mb-2 text-foreground">All caught up</h2>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                No suggestions right now. Check back after adding more events to your calendar.
               </p>
             </motion.div>
           )}
