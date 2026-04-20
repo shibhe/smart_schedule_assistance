@@ -1,16 +1,35 @@
 import { Router, type IRouter } from "express";
 import { db, eventsTable } from "@workspace/db";
-import { gte, desc } from "drizzle-orm";
+import { and, eq, gte, desc } from "drizzle-orm";
+import { getAuth } from "@clerk/express";
 import { openai } from "@workspace/integrations-openai-ai-server";
 
 const router: IRouter = Router();
 
-router.get("/suggestions", async (_req, res): Promise<void> => {
+function requireAuth(req: any, res: any, next: any) {
+  const auth = getAuth(req);
+  const userId = auth?.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  req.userId = userId;
+  next();
+}
+
+router.get("/suggestions", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const now = new Date();
+
   const recentEvents = await db
     .select()
     .from(eventsTable)
-    .where(gte(eventsTable.createdAt, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)))
+    .where(
+      and(
+        eq(eventsTable.userId, userId),
+        gte(eventsTable.createdAt, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)),
+      ),
+    )
     .orderBy(desc(eventsTable.startTime))
     .limit(20);
 
@@ -75,7 +94,7 @@ Make suggestions relevant, actionable, and specific. Consider patterns in the sc
     }
 
     res.json(suggestions);
-  } catch (err) {
+  } catch {
     res.json(getFallbackSuggestions(today));
   }
 });
@@ -91,7 +110,7 @@ function getFallbackSuggestions(today: string) {
       title: "Morning Review Session",
       description: "Start your day by reviewing your schedule and priorities",
       suggestedTime: "09:00",
-      suggestedDate: tomorrow.toISOString().split("T")[0],
+      suggestedDate: tomorrowStr,
       category: "work",
       priority: "high",
       reason: "A consistent morning review boosts daily productivity",

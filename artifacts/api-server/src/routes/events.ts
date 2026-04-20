@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
+import { getAuth } from "@clerk/express";
 import { db, eventsTable } from "@workspace/db";
 import {
   ListEventsQueryParams,
@@ -12,14 +13,25 @@ import {
 
 const router: IRouter = Router();
 
-router.get("/events/today", async (req, res): Promise<void> => {
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+function requireAuth(req: any, res: any, next: any) {
+  const auth = getAuth(req);
+  const userId = auth?.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  req.userId = userId;
+  next();
+}
+
+router.get("/events/today", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
+  const todayStr = new Date().toISOString().split("T")[0];
 
   const events = await db
     .select()
     .from(eventsTable)
-    .where(eq(eventsTable.date, todayStr))
+    .where(and(eq(eventsTable.date, todayStr), eq(eventsTable.userId, userId)))
     .orderBy(eventsTable.startTime);
 
   const completedCount = events.filter((e) => e.completed).length;
@@ -34,7 +46,8 @@ router.get("/events/today", async (req, res): Promise<void> => {
   });
 });
 
-router.get("/events/upcoming", async (_req, res): Promise<void> => {
+router.get("/events/upcoming", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const now = new Date();
   const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -43,6 +56,7 @@ router.get("/events/upcoming", async (_req, res): Promise<void> => {
     .from(eventsTable)
     .where(
       and(
+        eq(eventsTable.userId, userId),
         gte(eventsTable.startTime, now),
         lte(eventsTable.startTime, sevenDaysLater),
       ),
@@ -52,8 +66,13 @@ router.get("/events/upcoming", async (_req, res): Promise<void> => {
   res.json(events.map(formatEvent));
 });
 
-router.get("/events/stats", async (_req, res): Promise<void> => {
-  const allEvents = await db.select().from(eventsTable);
+router.get("/events/stats", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
+  const allEvents = await db
+    .select()
+    .from(eventsTable)
+    .where(eq(eventsTable.userId, userId));
+
   const now = new Date();
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - now.getDay());
@@ -81,7 +100,8 @@ router.get("/events/stats", async (_req, res): Promise<void> => {
   });
 });
 
-router.get("/events", async (req, res): Promise<void> => {
+router.get("/events", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const parsed = ListEventsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -89,7 +109,7 @@ router.get("/events", async (req, res): Promise<void> => {
   }
 
   const { date, start, end } = parsed.data;
-  const conditions = [];
+  const conditions: ReturnType<typeof eq>[] = [eq(eventsTable.userId, userId)];
 
   if (date) {
     conditions.push(eq(eventsTable.date, date));
@@ -101,13 +121,14 @@ router.get("/events", async (req, res): Promise<void> => {
   const events = await db
     .select()
     .from(eventsTable)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(and(...conditions))
     .orderBy(eventsTable.startTime);
 
   res.json(events.map(formatEvent));
 });
 
-router.post("/events", async (req, res): Promise<void> => {
+router.post("/events", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const parsed = CreateEventBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -118,6 +139,7 @@ router.post("/events", async (req, res): Promise<void> => {
   const [event] = await db
     .insert(eventsTable)
     .values({
+      userId,
       title: data.title,
       description: data.description ?? null,
       startTime: data.startTime instanceof Date ? data.startTime : new Date(data.startTime as string),
@@ -126,13 +148,15 @@ router.post("/events", async (req, res): Promise<void> => {
       category: data.category ?? "general",
       priority: data.priority ?? "medium",
       color: data.color ?? null,
+      location: (data as any).location ?? null,
     })
     .returning();
 
   res.status(201).json(formatEvent(event));
 });
 
-router.get("/events/:id", async (req, res): Promise<void> => {
+router.get("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const params = GetEventParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -142,7 +166,7 @@ router.get("/events/:id", async (req, res): Promise<void> => {
   const [event] = await db
     .select()
     .from(eventsTable)
-    .where(eq(eventsTable.id, params.data.id));
+    .where(and(eq(eventsTable.id, params.data.id), eq(eventsTable.userId, userId)));
 
   if (!event) {
     res.status(404).json({ error: "Event not found" });
@@ -152,7 +176,8 @@ router.get("/events/:id", async (req, res): Promise<void> => {
   res.json(formatEvent(event));
 });
 
-router.patch("/events/:id", async (req, res): Promise<void> => {
+router.patch("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const params = UpdateEventParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -177,11 +202,12 @@ router.patch("/events/:id", async (req, res): Promise<void> => {
   if (data.priority !== undefined) updateData.priority = data.priority;
   if (data.completed !== undefined) updateData.completed = data.completed;
   if (data.color !== undefined) updateData.color = data.color;
+  if ((data as any).location !== undefined) updateData.location = (data as any).location;
 
   const [event] = await db
     .update(eventsTable)
     .set(updateData)
-    .where(eq(eventsTable.id, params.data.id))
+    .where(and(eq(eventsTable.id, params.data.id), eq(eventsTable.userId, userId)))
     .returning();
 
   if (!event) {
@@ -192,7 +218,8 @@ router.patch("/events/:id", async (req, res): Promise<void> => {
   res.json(formatEvent(event));
 });
 
-router.delete("/events/:id", async (req, res): Promise<void> => {
+router.delete("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const params = DeleteEventParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -201,7 +228,7 @@ router.delete("/events/:id", async (req, res): Promise<void> => {
 
   const [event] = await db
     .delete(eventsTable)
-    .where(eq(eventsTable.id, params.data.id))
+    .where(and(eq(eventsTable.id, params.data.id), eq(eventsTable.userId, userId)))
     .returning();
 
   if (!event) {

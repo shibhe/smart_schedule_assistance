@@ -1,20 +1,35 @@
 import { Router, type IRouter } from "express";
 import { db, chatMessagesTable, eventsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
+import { getAuth } from "@clerk/express";
 import { openai } from "@workspace/integrations-openai-ai-server";
 
 const router: IRouter = Router();
 
-router.get("/chat/history", async (_req, res): Promise<void> => {
+function requireAuth(req: any, res: any, next: any) {
+  const auth = getAuth(req);
+  const userId = auth?.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  req.userId = userId;
+  next();
+}
+
+router.get("/chat/history", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const messages = await db
     .select()
     .from(chatMessagesTable)
+    .where(eq(chatMessagesTable.userId, userId))
     .orderBy(chatMessagesTable.createdAt);
 
   res.json(messages.map(formatMessage));
 });
 
-router.post("/chat/message", async (req, res): Promise<void> => {
+router.post("/chat/message", requireAuth, async (req: any, res): Promise<void> => {
+  const userId = req.userId as string;
   const { message } = req.body;
 
   if (!message || typeof message !== "string") {
@@ -22,10 +37,7 @@ router.post("/chat/message", async (req, res): Promise<void> => {
     return;
   }
 
-  await db.insert(chatMessagesTable).values({
-    role: "user",
-    content: message,
-  });
+  await db.insert(chatMessagesTable).values({ userId, role: "user", content: message });
 
   const today = new Date().toISOString().split("T")[0];
   const todayFormatted = new Date().toLocaleDateString("en-US", {
@@ -38,6 +50,7 @@ router.post("/chat/message", async (req, res): Promise<void> => {
   const recentEvents = await db
     .select()
     .from(eventsTable)
+    .where(eq(eventsTable.userId, userId))
     .orderBy(desc(eventsTable.startTime))
     .limit(10);
 
@@ -110,16 +123,14 @@ Rules:
 
         if (actionData.type === "create" && actionData.event) {
           const evt = actionData.event;
-          const startTime = new Date(evt.startTime);
-          const endTime = evt.endTime ? new Date(evt.endTime) : null;
-
           const [newEvent] = await db
             .insert(eventsTable)
             .values({
+              userId,
               title: evt.title,
               description: evt.description ?? null,
-              startTime,
-              endTime,
+              startTime: new Date(evt.startTime),
+              endTime: evt.endTime ? new Date(evt.endTime) : null,
               date: evt.date || evt.startTime?.split("T")[0] || today,
               category: evt.category ?? "general",
               priority: evt.priority ?? "medium",
@@ -130,6 +141,7 @@ Rules:
           eventId = newEvent.id;
 
           await db.insert(chatMessagesTable).values({
+            userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
             eventAction: "create",
@@ -150,21 +162,25 @@ Rules:
           const [updEvt] = await db
             .update(eventsTable)
             .set(updateData)
-            .where(eq(eventsTable.id, actionData.eventId))
+            .where(and(eq(eventsTable.id, actionData.eventId), eq(eventsTable.userId, userId)))
             .returning();
 
           updatedEvent = updEvt;
 
           await db.insert(chatMessagesTable).values({
+            userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
             eventAction: "update",
             eventId: updEvt?.id ?? actionData.eventId,
           });
         } else if (actionData.type === "delete" && actionData.eventId) {
-          await db.delete(eventsTable).where(eq(eventsTable.id, actionData.eventId));
+          await db
+            .delete(eventsTable)
+            .where(and(eq(eventsTable.id, actionData.eventId), eq(eventsTable.userId, userId)));
 
           await db.insert(chatMessagesTable).values({
+            userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
             eventAction: "delete",
@@ -172,31 +188,29 @@ Rules:
           });
         } else {
           await db.insert(chatMessagesTable).values({
+            userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
           });
         }
       } catch {
         await db.insert(chatMessagesTable).values({
+          userId,
           role: "assistant",
           content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
         });
       }
     } else {
-      await db.insert(chatMessagesTable).values({
-        role: "assistant",
-        content: aiResponse,
-      });
+      await db.insert(chatMessagesTable).values({ userId, role: "assistant", content: aiResponse });
     }
 
     const cleanResponse = aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim();
 
     res.json({
       message: cleanResponse,
-      action: action,
+      action,
       ...(createdEvent ? { event: formatEvent(createdEvent) } : {}),
       ...(updatedEvent ? { event: formatEvent(updatedEvent) } : {}),
-      intent: action,
     });
   } catch (err) {
     req.log.error({ err }, "OpenAI API error");
