@@ -1,24 +1,14 @@
 import { Router, type IRouter } from "express";
-import { db, eventsTable } from "@workspace/db";
-import { and, eq, gte, desc } from "drizzle-orm";
-import { getAuth } from "@clerk/express";
+import { db, eventsTable, suggestionsTable } from "@workspace/db";
+import { and, eq, gte, desc, sql } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { requireAuth, type AuthenticatedRequest } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
 
-function requireAuth(req: any, res: any, next: any) {
-  const auth = getAuth(req);
-  const userId = auth?.userId;
-  if (!userId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  req.userId = userId;
-  next();
-}
 
-router.get("/suggestions", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/suggestions", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const now = new Date();
 
   const recentEvents = await db
@@ -32,6 +22,24 @@ router.get("/suggestions", requireAuth, async (req: any, res): Promise<void> => 
     )
     .orderBy(desc(eventsTable.startTime))
     .limit(20);
+
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Check if we have suggestions generated today
+  const existingSuggestions = await db
+    .select()
+    .from(suggestionsTable)
+    .where(
+      and(
+        eq(suggestionsTable.userId, userId),
+        gte(suggestionsTable.createdAt, startOfToday)
+      )
+    );
+
+  if (existingSuggestions.length > 0) {
+    res.json(existingSuggestions);
+    return;
+  }
 
   const today = now.toISOString().split("T")[0];
   const todayFormatted = now.toLocaleDateString("en-US", {
@@ -83,14 +91,32 @@ Make suggestions relevant, actionable, and specific. Consider patterns in the sc
 
     const content = completion.choices[0]?.message?.content ?? "[]";
 
-    let suggestions: unknown[] = [];
+    let suggestions: any[] = [];
     try {
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         suggestions = JSON.parse(jsonMatch[0]);
+      } else {
+        suggestions = getFallbackSuggestions(today);
       }
     } catch {
       suggestions = getFallbackSuggestions(today);
+    }
+
+    if (suggestions.length > 0) {
+      const inserts = suggestions.map((s) => ({
+        userId,
+        title: s.title,
+        description: s.description,
+        suggestedTime: s.suggestedTime,
+        suggestedDate: s.suggestedDate,
+        category: s.category,
+        priority: s.priority,
+        reason: s.reason,
+        confidence: s.confidence ?? 0.5,
+      }));
+
+      await db.insert(suggestionsTable).values(inserts);
     }
 
     res.json(suggestions);

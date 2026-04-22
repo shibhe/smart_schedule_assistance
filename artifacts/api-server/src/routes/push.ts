@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import webPush from "web-push";
 import { db, pushSubscriptionsTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
-import { getAuth } from "@clerk/express";
+import { requireAuth, type AuthenticatedRequest } from "../middlewares/authMiddleware";
 
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
@@ -14,15 +14,6 @@ if (vapidPublicKey && vapidPrivateKey) {
 
 const router: IRouter = Router();
 
-function requireAuth(req: any, res: any, next: any) {
-  const auth = getAuth(req);
-  if (!auth?.userId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  req.userId = auth.userId;
-  next();
-}
 
 router.get("/push/vapid-key", (_req, res): void => {
   if (!vapidPublicKey) {
@@ -32,8 +23,8 @@ router.get("/push/vapid-key", (_req, res): void => {
   res.json({ publicKey: vapidPublicKey });
 });
 
-router.post("/push/subscribe", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.post("/push/subscribe", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const { endpoint, keys } = req.body;
 
   if (!endpoint || !keys?.p256dh || !keys?.auth) {
@@ -58,8 +49,8 @@ router.post("/push/subscribe", requireAuth, async (req: any, res): Promise<void>
   res.status(201).json({ success: true });
 });
 
-router.delete("/push/subscribe", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.delete("/push/subscribe", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const { endpoint } = req.body;
 
   if (!endpoint) {
@@ -75,7 +66,7 @@ router.delete("/push/subscribe", requireAuth, async (req: any, res): Promise<voi
 });
 
 export async function sendPushToUser(
-  userId: string,
+  userId: number,
   payload: { title: string; body: string; icon?: string },
 ): Promise<void> {
   if (!vapidPublicKey || !vapidPrivateKey) return;

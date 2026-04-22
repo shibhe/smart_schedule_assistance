@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { LayoutDashboard, Calendar as CalendarIcon, BarChart3, Lightbulb, Menu, Sparkles, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useClerk, useUser } from "@clerk/react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -14,25 +14,20 @@ const NAV_ITEMS = [
 const basePath = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
 function UserFooter() {
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { user, logout } = useAuth();
 
   const handleSignOut = () => {
-    signOut({ redirectUrl: `${basePath}/sign-in` });
+    logout();
   };
 
-  const displayName = user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "User";
-  const email = user?.primaryEmailAddress?.emailAddress;
+  const displayName = user?.fullName || user?.username || "User";
+  const email = user?.email;
 
   return (
     <div className="p-4 border-t border-border bg-card">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
-          {user?.imageUrl ? (
-            <img src={user.imageUrl} alt={displayName} className="w-9 h-9 rounded-full object-cover" />
-          ) : (
-            <User className="w-4 h-4 text-muted-foreground" />
-          )}
+          <User className="w-4 h-4 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold truncate text-foreground">{displayName}</p>

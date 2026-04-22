@@ -1,12 +1,16 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, doublePrecision, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 export const chatMessagesTable = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
-  userId: text("user_id"),
+  userId: integer("user_id").notNull().references(() => usersTable.id),
   role: text("role").notNull(),
   content: text("content").notNull(),
+  intent: text("intent"),
+  confidence: doublePrecision("confidence"),
+  metadata: jsonb("metadata"),
   eventAction: text("event_action"),
   eventId: integer("event_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

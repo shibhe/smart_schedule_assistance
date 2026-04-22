@@ -1,8 +1,9 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
-import { verifyToken } from "@clerk/express";
+import jwt from "jsonwebtoken";
 
-const userSockets = new Map<string, Set<WebSocket>>();
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_dev_only";
+const userSockets = new Map<number, Set<WebSocket>>();
 
 export function attachWebSocketServer(server: Server): WebSocketServer {
   const wss = new WebSocketServer({ noServer: true });
@@ -22,7 +23,7 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
   });
 
   wss.on("connection", (ws) => {
-    let userId: string | null = null;
+    let userId: number | null = null;
 
     const pingInterval = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) ws.ping();
@@ -34,11 +35,8 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
 
         if (msg.type === "auth" && typeof msg.token === "string") {
           try {
-            const secretKey = process.env.CLERK_SECRET_KEY;
-            if (!secretKey) throw new Error("Missing CLERK_SECRET_KEY");
-
-            const payload = await verifyToken(msg.token, { secretKey });
-            userId = payload.sub;
+            const payload = jwt.verify(msg.token, JWT_SECRET) as { userId: number };
+            userId = payload.userId;
 
             if (!userSockets.has(userId)) userSockets.set(userId, new Set());
             userSockets.get(userId)!.add(ws);
@@ -68,7 +66,7 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
   return wss;
 }
 
-export function broadcastToUser(userId: string, data: unknown): void {
+export function broadcastToUser(userId: number, data: unknown): void {
   const sockets = userSockets.get(userId);
   if (!sockets) return;
   const message = JSON.stringify(data);

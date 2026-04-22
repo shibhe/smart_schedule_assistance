@@ -1,9 +1,9 @@
 import { useEffect, useRef, useCallback } from "react";
-import { useAuth } from "@clerk/react";
+import { useAuth } from "../contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function useWebSocket() {
-  const { getToken, isSignedIn } = useAuth();
+  const { token, isAuthenticated: isSignedIn } = useAuth();
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -20,7 +20,6 @@ export function useWebSocket() {
     if (!isSignedIn || unmountedRef.current) return;
 
     try {
-      const token = await getToken();
       if (!token || unmountedRef.current) return;
 
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -57,7 +56,7 @@ export function useWebSocket() {
         reconnectRef.current = setTimeout(connect, 3000);
       }
     }
-  }, [isSignedIn, getToken, invalidateEvents]);
+  }, [isSignedIn, token, invalidateEvents]);
 
   useEffect(() => {
     unmountedRef.current = false;

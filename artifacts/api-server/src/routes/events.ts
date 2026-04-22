@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { eq, and, gte, lte, isNull } from "drizzle-orm";
-import { getAuth } from "@clerk/express";
+import { eq, and, gte, lte } from "drizzle-orm";
 import { db, eventsTable } from "@workspace/db";
 import { broadcastToUser } from "../websocket/wsServer";
+import { requireAuth, type AuthenticatedRequest } from "../middlewares/authMiddleware";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -14,32 +14,8 @@ import {
 
 const router: IRouter = Router();
 
-// Track which users have already had their unclaimed events migrated this
-// server session — avoids re-running the claim query on every request.
-const claimedUsers = new Set<string>();
-
-async function claimUnownedEvents(userId: string): Promise<void> {
-  if (claimedUsers.has(userId)) return;
-  claimedUsers.add(userId);
-  await db
-    .update(eventsTable)
-    .set({ userId })
-    .where(isNull(eventsTable.userId));
-}
-
-function requireAuth(req: any, res: any, next: any) {
-  const auth = getAuth(req);
-  const userId = auth?.userId;
-  if (!userId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  req.userId = userId;
-  claimUnownedEvents(userId).then(() => next()).catch(() => next());
-}
-
-router.get("/events/today", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/events/today", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const todayStr = (req.query.date as string | undefined) || new Date().toISOString().split("T")[0];
 
   const events = await db
@@ -60,8 +36,8 @@ router.get("/events/today", requireAuth, async (req: any, res): Promise<void> =>
   });
 });
 
-router.get("/events/upcoming", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/events/upcoming", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const now = new Date();
   const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -80,8 +56,8 @@ router.get("/events/upcoming", requireAuth, async (req: any, res): Promise<void>
   res.json(events.map(formatEvent));
 });
 
-router.get("/events/stats", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/events/stats", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const allEvents = await db
     .select()
     .from(eventsTable)
@@ -114,8 +90,8 @@ router.get("/events/stats", requireAuth, async (req: any, res): Promise<void> =>
   });
 });
 
-router.get("/events", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/events", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const parsed = ListEventsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -141,8 +117,8 @@ router.get("/events", requireAuth, async (req: any, res): Promise<void> => {
   res.json(events.map(formatEvent));
 });
 
-router.post("/events", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.post("/events", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const parsed = CreateEventBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -170,8 +146,8 @@ router.post("/events", requireAuth, async (req: any, res): Promise<void> => {
   res.status(201).json(formatEvent(event));
 });
 
-router.get("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/events/:id", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const params = GetEventParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -191,8 +167,8 @@ router.get("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
   res.json(formatEvent(event));
 });
 
-router.patch("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.patch("/events/:id", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const params = UpdateEventParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -234,8 +210,8 @@ router.patch("/events/:id", requireAuth, async (req: any, res): Promise<void> =>
   res.json(formatEvent(event));
 });
 
-router.delete("/events/:id", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.delete("/events/:id", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const params = DeleteEventParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

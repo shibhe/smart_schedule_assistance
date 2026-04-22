@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@clerk/react";
+import { useAuth } from "../contexts/AuthContext";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -9,7 +9,7 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 }
 
 export function usePushNotifications() {
-  const { isSignedIn } = useAuth();
+  const { isAuthenticated: isSignedIn } = useAuth();
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSupported, setIsSupported] = useState(false);

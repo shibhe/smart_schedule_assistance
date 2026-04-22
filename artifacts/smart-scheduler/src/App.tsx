@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,144 +9,33 @@ import Home from "@/pages/Home";
 import Calendar from "@/pages/Calendar";
 import Stats from "@/pages/Stats";
 import Suggestions from "@/pages/Suggestions";
+import SignInPage from "@/pages/SignInPage";
+import SignUpPage from "@/pages/SignUpPage";
 import NotFound from "@/pages/not-found";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useToast } from "@/hooks/use-toast";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 const queryClient = new QueryClient();
-
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
-function stripBase(path: string): string {
-  return basePath && path.startsWith(basePath)
-    ? path.slice(basePath.length) || "/"
-    : path;
-}
+// Initialize API client with token getter
+setAuthTokenGetter(() => localStorage.getItem("auth_token"));
 
-if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
-}
-
-const clerkAppearance = {
-  options: {
-    logoPlacement: "inside" as const,
-    logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
-  },
-  variables: {
-    colorPrimary: "hsl(224, 71%, 4%)",
-    colorBackground: "hsl(0, 0%, 100%)",
-    colorInputBackground: "hsl(220, 14%, 96%)",
-    colorText: "hsl(224, 71%, 4%)",
-    colorTextSecondary: "hsl(220, 9%, 46%)",
-    colorInputText: "hsl(224, 71%, 4%)",
-    colorNeutral: "hsl(220, 9%, 46%)",
-    borderRadius: "0.75rem",
-    fontFamily: "'Outfit', 'Inter', sans-serif",
-    fontFamilyButtons: "'Outfit', 'Inter', sans-serif",
-    fontSize: "15px",
-  },
-  elements: {
-    rootBox: "w-full",
-    cardBox: "shadow-xl rounded-2xl w-full overflow-hidden border border-border bg-card",
-    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: { color: "hsl(224, 71%, 4%)", fontWeight: "700", fontFamily: "'Outfit', sans-serif" },
-    headerSubtitle: { color: "hsl(220, 9%, 46%)" },
-    socialButtonsBlockButtonText: { color: "hsl(224, 71%, 4%)" },
-    formFieldLabel: { color: "hsl(220, 9%, 46%)" },
-    footerActionLink: { color: "hsl(224, 71%, 4%)" },
-    footerActionText: { color: "hsl(220, 9%, 46%)" },
-    dividerText: { color: "hsl(220, 9%, 46%)" },
-    identityPreviewEditButton: { color: "hsl(224, 71%, 4%)" },
-    formFieldSuccessText: { color: "hsl(142, 71%, 35%)" },
-    alertText: { color: "hsl(0, 72%, 51%)" },
-    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all",
-    formFieldInput: "bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all",
-    socialButtonsBlockButton: "border-border hover:bg-muted transition-all",
-    dividerLine: "bg-border",
-    logoImage: "w-10 h-10",
-    logoBox: "flex items-center justify-center",
-    footerAction: "bg-muted border-t border-border",
-    socialButtonsRoot: { display: "none" },
-    dividerRow: { display: "none" },
-  },
-};
-
-function AuthBackground() {
-  return (
-    <div className="fixed inset-0 bg-muted z-[-2]" />
-  );
-}
-
-function SignInPage() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center px-4 relative overflow-hidden">
-      <AuthBackground />
-      <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full" />
-              <img src={`${basePath}/logo.svg`} alt="SmartSchedule" className="w-12 h-12 relative z-10" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground font-sans tracking-tight">SmartSchedule</h1>
-          </div>
-          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">AI Scheduling</p>
-        </div>
-        <SignIn
-          routing="path"
-          path={`${basePath}/sign-in`}
-          signUpUrl={`${basePath}/sign-up`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function SignUpPage() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center px-4 relative overflow-hidden">
-      <AuthBackground />
-      <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full" />
-              <img src={`${basePath}/logo.svg`} alt="SmartSchedule" className="w-12 h-12 relative z-10" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground font-sans tracking-tight">SmartSchedule</h1>
-          </div>
-          <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">Create your account</p>
-        </div>
-        <SignUp
-          routing="path"
-          path={`${basePath}/sign-up`}
-          signInUrl={`${basePath}/sign-in`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ClerkQueryClientCacheInvalidator() {
-  const { addListener } = useClerk();
+function AuthQueryClientCacheInvalidator() {
+  const { user } = useAuth();
   const qc = useQueryClient();
-  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  const prevUserIdRef = useRef<number | null>(undefined);
 
   useEffect(() => {
-    const unsubscribe = addListener(({ user }) => {
-      const userId = user?.id ?? null;
-      if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
-        qc.clear();
-      }
-      prevUserIdRef.current = userId;
-    });
-    return unsubscribe;
-  }, [addListener, qc]);
+    const userId = user?.id ?? null;
+    if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
+      qc.clear();
+    }
+    prevUserIdRef.current = userId;
+  }, [user, qc]);
 
   return null;
 }
@@ -187,7 +75,21 @@ function ReminderNotifier() {
 }
 
 function AppRoutes() {
+  const { isAuthenticated, isLoading } = useAuth();
   useWebSocket();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect to="/sign-in" />;
+  }
+
   return (
     <AppLayout>
       <PushNotificationBanner />
@@ -204,69 +106,22 @@ function AppRoutes() {
   );
 }
 
-function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <AppRoutes />
-      </Show>
-      <Show when="signed-out">
-        <Redirect to="/sign-in" />
-      </Show>
-    </>
-  );
-}
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/sign-in/*?" component={SignInPage} />
-      <Route path="/sign-up/*?" component={SignUpPage} />
-      <Route component={HomeRedirect} />
-    </Switch>
-  );
-}
-
-function ClerkProviderWithRoutes() {
-  const [, setLocation] = useLocation();
-
-  return (
-    <ClerkProvider
-      publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
-      localization={{
-        signIn: {
-          start: {
-            title: "Welcome back",
-            subtitle: "Sign in to your account",
-          },
-        },
-        signUp: {
-          start: {
-            title: "Create an account",
-            subtitle: "Start organizing your schedule",
-          },
-        },
-      }}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
-    >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ClerkQueryClientCacheInvalidator />
-          <Router />
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ClerkProvider>
-  );
-}
-
 function App() {
   return (
     <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthQueryClientCacheInvalidator />
+            <Switch>
+              <Route path="/sign-in" component={SignInPage} />
+              <Route path="/sign-up" component={SignUpPage} />
+              <Route component={AppRoutes} />
+            </Switch>
+            <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </AuthProvider>
     </WouterRouter>
   );
 }

@@ -1,8 +1,9 @@
-import { pgTable, text, serial, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { usersTable } from "./users";
 
 export const pushSubscriptionsTable = pgTable("push_subscriptions", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
+  userId: integer("user_id").notNull().references(() => usersTable.id),
   endpoint: text("endpoint").notNull(),
   p256dh: text("p256dh").notNull(),
   auth: text("auth").notNull(),

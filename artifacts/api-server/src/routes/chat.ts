@@ -1,26 +1,16 @@
 import { Router, type IRouter } from "express";
 import { db, chatMessagesTable, eventsTable } from "@workspace/db";
 import { desc, eq, and, gte } from "drizzle-orm";
-import { getAuth } from "@clerk/express";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { broadcastToUser } from "../websocket/wsServer";
 import { sendPushToUser } from "./push";
+import { requireAuth, type AuthenticatedRequest } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
 
-function requireAuth(req: any, res: any, next: any) {
-  const auth = getAuth(req);
-  const userId = auth?.userId;
-  if (!userId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  req.userId = userId;
-  next();
-}
 
-router.get("/chat/history", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.get("/chat/history", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const messages = await db
     .select()
     .from(chatMessagesTable)
@@ -30,8 +20,8 @@ router.get("/chat/history", requireAuth, async (req: any, res): Promise<void> =>
   res.json(messages.map(formatMessage));
 });
 
-router.post("/chat/message", requireAuth, async (req: any, res): Promise<void> => {
-  const userId = req.userId as string;
+router.post("/chat/message", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const userId = req.userId as number;
   const { message } = req.body;
 
   if (!message || typeof message !== "string") {
@@ -73,10 +63,16 @@ You help users manage their schedule by creating, updating, deleting, and retrie
 
 ${eventsContext}
 
-When the user wants to perform a scheduling action, respond with a JSON block in your message like this:
+When the user wants to perform a scheduling action or asks a question, respond with a JSON block in your message like this:
 <action>
 {
-  "type": "create" | "update" | "delete" | "list",
+  "type": "create" | "update" | "delete" | "list" | "general",
+  "intent": "string (e.g. 'schedule_meeting', 'check_availability', 'cancel_event')",
+  "confidence": number (0.0 to 1.0),
+  "metadata": {
+    "entities": ["list of extracted entities like dates, times, people, places"],
+    "extracted_details": { "key": "value" }
+  },
   "event": {
     "title": "string",
     "description": "string (optional)",
@@ -116,6 +112,9 @@ Rules:
     let createdEvent = null;
     let updatedEvent = null;
     let eventId: number | null = null;
+    let intent: string | null = null;
+    let confidence: number | null = null;
+    let metadata: any = null;
 
     const actionMatch = aiResponse.match(/<action>([\s\S]*?)<\/action>/);
     if (actionMatch) {
@@ -123,6 +122,9 @@ Rules:
         const actionData = JSON.parse(actionMatch[1].trim());
         action = actionData.type;
         eventId = actionData.eventId ?? null;
+        intent = actionData.intent ?? null;
+        confidence = actionData.confidence ?? null;
+        metadata = actionData.metadata ?? null;
 
         if (actionData.type === "create" && actionData.event) {
           const evt = actionData.event;
@@ -153,6 +155,9 @@ Rules:
             userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
+            intent,
+            confidence,
+            metadata,
             eventAction: "create",
             eventId: newEvent.id,
           });
@@ -182,6 +187,9 @@ Rules:
             userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
+            intent,
+            confidence,
+            metadata,
             eventAction: "update",
             eventId: updEvt?.id ?? actionData.eventId,
           });
@@ -196,6 +204,9 @@ Rules:
             userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
+            intent,
+            confidence,
+            metadata,
             eventAction: "delete",
             eventId: actionData.eventId,
           });
@@ -204,6 +215,9 @@ Rules:
             userId,
             role: "assistant",
             content: aiResponse.replace(/<action>[\s\S]*?<\/action>/, "").trim(),
+            intent,
+            confidence,
+            metadata,
           });
         }
       } catch {

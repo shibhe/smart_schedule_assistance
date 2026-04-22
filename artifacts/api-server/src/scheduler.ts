@@ -25,7 +25,7 @@ async function autoClosePassedEvents(): Promise<void> {
 
     if (closed.length > 0) {
       logger.info({ count: closed.length }, "Auto-closed past events");
-      const userIds = [...new Set(closed.map((e) => e.userId).filter(Boolean))] as string[];
+      const userIds = [...new Set(closed.map((e) => e.userId))] as number[];
       for (const userId of userIds) {
         broadcastToUser(userId, {
           type: "events_auto_closed",
