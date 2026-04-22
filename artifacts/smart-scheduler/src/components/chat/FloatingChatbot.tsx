@@ -281,7 +281,7 @@ export function FloatingChatbot() {
                               >
                                 {msg.content}
                               </div>
-                              {msg.role === "assistant" && msg.event && (
+                              {msg.role === "assistant" && !!msg.event && (
                                 <EventCardInline
                                   event={msg.event as EventCardInlineProps["event"]}
                                   action={msg.action}

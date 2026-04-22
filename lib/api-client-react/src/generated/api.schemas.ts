@@ -35,6 +35,8 @@ export interface Event {
   completed: boolean;
   /** @nullable */
   color?: string | null;
+  /** @nullable */
+  location?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,6 +62,8 @@ export interface CreateEventBody {
   priority?: CreateEventBodyPriority;
   /** @nullable */
   color?: string | null;
+  /** @nullable */
+  location?: string | null;
 }
 
 export type UpdateEventBodyPriority =
@@ -84,6 +88,8 @@ export interface UpdateEventBody {
   completed?: boolean;
   /** @nullable */
   color?: string | null;
+  /** @nullable */
+  location?: string | null;
 }
 
 export interface TodayEventsResponse {

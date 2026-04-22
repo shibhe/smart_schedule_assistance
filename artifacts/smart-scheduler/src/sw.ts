@@ -1,3 +1,4 @@
+/// <reference lib="webworker" />
 import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 
 declare const self: ServiceWorkerGlobalScope;
@@ -6,7 +7,7 @@ declare const __WB_MANIFEST: { revision: string | null; url: string }[];
 cleanupOutdatedCaches();
 precacheAndRoute(__WB_MANIFEST);
 
-self.addEventListener("push", (event) => {
+self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
   let data: { title?: string; body?: string; icon?: string } = {};
   try {
@@ -22,11 +23,11 @@ self.addEventListener("push", (event) => {
       badge: "/logo.svg",
       tag: "smart-scheduler",
       renotify: true,
-    }),
+    } as any),
   );
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
   event.waitUntil(
     // @ts-ignore
