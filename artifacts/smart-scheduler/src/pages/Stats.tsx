@@ -36,7 +36,7 @@ export default function Stats() {
 
   return (
     <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 md:p-8 lg:p-10 bg-background">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className=" mx-auto space-y-8">
         <header>
           <div className="flex items-center gap-3 mb-1">
             <BarChart4 className="w-5 h-5 text-muted-foreground" />

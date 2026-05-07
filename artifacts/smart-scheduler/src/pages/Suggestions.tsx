@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetAiSuggestions, getGetAiSuggestionsQueryKey, useCreateEvent, getListEventsQueryKey, getGetTodayEventsQueryKey, getGetUpcomingEventsQueryKey, getGetEventStatsQueryKey } from "@workspace/api-client-react";
 import type { SchedulingSuggestion } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Lightbulb, Loader2, Sparkles, Check, Clock, Calendar } from "lucide-react";
@@ -62,7 +62,7 @@ export default function Suggestions() {
 
   return (
     <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 md:p-8 lg:p-10 bg-background">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className=" mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-muted-foreground text-xs font-semibold uppercase tracking-widest">

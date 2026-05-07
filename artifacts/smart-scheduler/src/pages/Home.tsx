@@ -8,12 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useUser } from "@clerk/react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Home() {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { user } = useUser();
-  const firstName = user?.firstName || user?.username || "";
+  const { user } = useAuth();
+  const firstName = user?.fullName || user?.username || "";
 
   const localDate = format(new Date(), "yyyy-MM-dd");
   const { data: todayData, isLoading: isLoadingToday } = useGetTodayEvents(
@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-background">
-      <div className="p-6 md:p-8 lg:p-10 max-w-4xl mx-auto space-y-8">
+      <div className="p-6 md:p-8 lg:p-10  mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
