@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, chatMessagesTable, eventsTable } from "@workspace/db";
-import { desc, eq, and, gte } from "drizzle-orm";
+import { eq, and, gte } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { broadcastToUser } from "../websocket/wsServer";
 import { sendPushToUser } from "./push";
@@ -98,7 +98,7 @@ Rules:
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.2",
+      model: "gpt-4-turbo",
       max_completion_tokens: 1024,
       messages: [
         { role: "system", content: systemPrompt },
